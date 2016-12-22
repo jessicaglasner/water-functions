@@ -1,5 +1,3 @@
-# README
-
 # Table of Contents
 
 1. [Description] (README.md#description)
@@ -15,4 +13,4 @@ This python modual containts functions for the calculation of thermophysical pro
 
 [Back to Table of Contents] (README.md#table-of-contents)
 
-It is important to note that there is an error in Equation (6) of Tsilingiris (2008). The second to last term in the equation should be P<sub>0</sub>/P<sub>sv</sub> rather than P<sub>sv</sub>/P<sub>0</sub>. Theis error was also propigated to the values of the enhancement factor 
+It is important to note that there is an error in Equation (6) of Tsilingiris (2008). The second to last term in the equation should be P<sub>0</sub>/P<sub>sv</sub> rather than P<sub>sv</sub>/P<sub>0</sub>. Theis error was also propigated to the values of the enhancement factor in Table 1. I submitted a corrigendum in December 2016 to *Energy Conv. Manag.*, however, at the time of writing it was not available online or linked to the manuscript.
