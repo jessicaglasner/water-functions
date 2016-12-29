@@ -104,30 +104,5 @@ def eff_p_sat_liq(temp_k, p_pa):
     enh_fact = enh_fact_liq(temp_k, p_pa, p_sat)
     return enh_fact*p_sat
 
-def get_eff_p_sat_liq_delta(temp_k, p_pa, delta=0.2):
-    """Use eff_p_sat_liq twice to return eff_p_sat with uncertainty.
-
-    This function uses  Hardy (1998), "ITS-90 Formulations for Vapor Pressure, Frostpoint
-    Temperature, Dewpoint Temperature, and Enhancement Factors in the Range -100 to +100 C," to
-    calculate the effective saturation vapor pressure over liquid water in the range 0 to 100 C as
-    well as the associated uncertainty. The uncertainty in effective saturation vapor pressure is
-    propigated from the uncertainty in the measurement of the temperature. The default uncertainty
-    is 0.2 K. If you would like to chage it, use the optional delta parameter; e.g., delta=0.1. It
-    should be noted that there is also an uncertainty associated with the pressure measurement, but
-    because the saturation vapor pressure is a strong function of temperature and a only a weak
-    function of pressure, the uncertainty from the pressure is negligible.
-
-    Input(s):
-        temp_k -> temperature in Kelvin
-        p_pa   -> total pressure in Pa
-    Optional Input(s):
-        delta  -> uncertainty in the measurement of the temperature
-    Output(s):
-        (p_sat, delta_p_sat) -> a tuple of the saturation vapor pressure and its uncertainty in Pa.
-    """
-    p_1 = eff_p_sat_liq(temp_k, p_pa)
-    p_2 = eff_p_sat_liq(temp_k + delta, p_pa)
-    return (p_1, abs(p_2 - p_1))
-
 def main():
     """Main"""
