@@ -36,6 +36,27 @@ def get_temp_k_obs(temp_k, delta_t=0.2):
         temp_k_obs = [(temp_k, delta_t)]
     return temp_k_obs
 
+def get_p_pa_obs(p_pa, frac_p=0.0025):
+    """Use p_pa to return list of tuples containing uncertainties.
+
+    This function accepts either a single observation or an iterable of observations and appends the
+    uncertainty to each of the observations. The default fractional uncertainty is 0.25% or 0.0025.
+
+    Positional argument(s):
+    p_pa  -- pressure(s) in Pascal
+
+    Keyword argument(s):
+    frac_p -- fractional uncertainty of all pressure observations (default 0.25% or 0.0025)
+
+    Output(s)
+    p_pa_obs -- list of tuples [(obs_1, delta_1), ..., (obs_n, delta_n)]
+    """
+    try:
+        p_pa_obs = [(p, frac_p*p) for p in p_pa]
+    except TypeError:
+        p_pa_obs = [(p_pa, frac_p*p_pa)]
+    return p_pa_obs
+
 def check_temp_liq(temp_k):
     """Check the temperature in Kelvin to return boolean of liquid water
 
