@@ -1,7 +1,9 @@
 """
 log and exp used for evaluating formulas
+errorAnalysis for error analysis
 """
 from math import log, exp
+import errorAnalysis as err
 
 """This python modual containts functions for the calculation of thermophysical properties of moist
 air in the range between 0 and 100 degC. For details regarding these functions see P.T. Tsilingiris
@@ -13,26 +15,49 @@ email: rinman@ucsd.edu
 Date Created: 21 Nov. 2016
 """
 
-def check_temp_liq(temp_k, delta=0):
+def get_temp_k_obs(temp_k, delta_t=0.2):
+    """Use temp k to return list of tuples containing uncertainties.
+
+    This function accepts either a single observation or an iterable of observations and appends the
+    uncertainty to each of the observations. The default uncertainty is 0.2 K.
+
+    Positional argument(s):
+    temp_k  -- temperature(s) in Kelvin
+
+    Keyword argument(s):
+    delta_t -- uncertainty of all temperature observations (default 0.2)
+
+    Output(s)
+    temp_k_obs -- list of tuples [(obs_1, delta_1), ..., (obs_n, delta_n)]
+    """
+    try:
+        temp_k_obs = [(temp, delta_t) for temp in temp_k]
+    except TypeError:
+        temp_k_obs = [(temp_k, delta_t)]
+    return temp_k_obs
+
+def check_temp_liq(temp_k):
     """Check the temperature in Kelvin to return boolean of liquid water
 
     This funciton checkes the temperature in Kelvin to see if the temperature is between 273.15 and
-    373.15 K. Returns True if the temperature is within said range and False otherwise.
+    373.15 K. Returns True if the temperature is within said range and False otherwise. This
+    function assumes that the standard form of an observation has been passed to it. That is, a
+    list of tuples containing the best guess at the observation in the [0] index and the uncertainty
+    of the observation in the [1] index.
 
-    Input(s):
-        temp_k -> temperature in Kelvin
-        delta  -> optional uncertainty in the measurement of temp_k (default is zero).
-                      This input is used when calculating uncertainties and is added to the logical
-                      checks of the temperature range. For example, if you want to calculate the
-                      uncertainty at 373.15 K, which is the upper bound for this function, you would
-                      need to evaluate this function at 373.15 K + delta.
+    Positional argument(s):
+    temp_k -- list of tuples [(temp_k, delta_t)] in Kelvin
+    
     Output(s):
-        bool   -> True if the temperature is between 273.15 and 373.15 K else False
+    if temperature is between 273.15 and 373.15 K:
+        True
+    else:
+        False
     """
-    if temp_k < 273.15:
+    if temp_k[0] < 273.15:
         print '\tError in p_sat_l: Temperature below 273.15 K.'
         return False
-    elif temp_k > 373.15 + delta:
+    elif temp_k[0] > 373.15 + temp_k[1]:
         print '\tError in p_sat_l: Temperature above 373.15 K.'
         return False
     else:
@@ -45,11 +70,11 @@ def p_sat_liq(temp_k):
     Temperature, Dewpoint Temperature, and Enhancement Factors in the Range -100 to +100 C," to
     calculate the saturation vapor pressure over liquid water in the range 0 to 100 C.
 
-    Input(s):
-        temp_k -> temperature in Kelvin
+    Positional argument(s):
+    temp_k -- temperature in Kelvin
+    
     Output(s):
-        p_sat  -> saturation vapor pressure over liquid water in Pa
-                      False if the input temp_k is outside of the limits 272.15 to 353.15 + delta
+    p_sat  -- saturation vapor pressure over liquid water in Pa
     """
     g_coef = (-2.8365744e3, -6.028076559e3, 1.954263612e1, -2.737830188e-2, 1.6261698e-5,
               7.0229056e-10, -1.8680009e-13, 2.7150305)
@@ -67,13 +92,13 @@ def enh_fact_liq(temp_k, p_pa, p_sat):
     Temperature, Dewpoint Temperature, and Enhancement Factors in the Range -100 to +100 C," to
     calculate the enhancement factor over liquid water in the range 0 to 100 C.
 
-    Input(s):
-        temp_k -> temperature in Kelvin
-        p_pa   -> total pressure in Pa
-        p_sat  -> saturation vapor pressure of water over liquid water in Pa
+    Positional argument(s):
+    temp_k -- temperature in Kelvin
+    p_pa   -- total pressure in Pa
+    p_sat  -- saturation vapor pressure of water over liquid water in Pa
+    
     Output(s):
-        f_enh -> enhancement factor over liquid water
-                      False if the input temp_k is outside of the limits 272.15 to 353.15 + delta
+    f_enh -- enhancement factor over liquid water
     """
     a_coef = (-1.6302041e-1, 1.8071570e-3, -6.7703064e-6, 8.5813609e-9)
     alpha = 0
@@ -93,16 +118,16 @@ def eff_p_sat_liq(temp_k, p_pa):
     Temperature, Dewpoint Temperature, and Enhancement Factors in the Range -100 to +100 C," to
     calculate the effective saturation vapor pressure over liquid water in the range 0 to 100 C.
 
-    Input(s):
-        temp_k -> temperature in Kelvin
-        p_pa   -> total pressure in Pa
+    Positional argument(s):
+    temp_k -- temperature in Kelvin
+    p_pa   -- total pressure in Pa
+    
     Output(s):
-        eff_p  -> effective saturation vapor pressure over liquid water
-                      False if the input temp_k is outside of the limits 272.15 to 353.15 + delta
+    eff_p  -- effective saturation vapor pressure over liquid water
     """
     p_sat = p_sat_liq(temp_k)
     enh_fact = enh_fact_liq(temp_k, p_pa, p_sat)
     return enh_fact*p_sat
-
+    
 def main():
     """Main"""
