@@ -31,9 +31,9 @@ def get_temp_k_obs(temp_k, delta_t=0.2):
     temp_k_obs -- list of tuples [(obs_1, delta_1), ..., (obs_n, delta_n)]
     """
     try:
-        temp_k_obs = [(temp, delta_t) for temp in temp_k]
+        temp_k_obs = [(float(temp), delta_t) for temp in temp_k]
     except TypeError:
-        temp_k_obs = [(temp_k, delta_t)]
+        temp_k_obs = [(float(temp_k), delta_t)]
     return temp_k_obs
 
 def get_p_pa_obs(p_pa, frac_p=0.0025):
@@ -52,9 +52,9 @@ def get_p_pa_obs(p_pa, frac_p=0.0025):
     p_pa_obs -- list of tuples [(obs_1, delta_1), ..., (obs_n, delta_n)]
     """
     try:
-        p_pa_obs = [(p, frac_p*p) for p in p_pa]
+        p_pa_obs = [(float(p), frac_p*p) for p in p_pa]
     except TypeError:
-        p_pa_obs = [(p_pa, frac_p*p_pa)]
+        p_pa_obs = [(float(p_pa), frac_p*p_pa)]
     return p_pa_obs
 
 def check_temp_liq(temp_k):
