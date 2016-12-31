@@ -1,9 +1,15 @@
 """
 log and exp used for evaluating formulas
 errorAnalysis for error analysis
+arange and meshgrid for 3d plot coordinates
+matplotlib.pyplot for plotting
+Axes3D for 3d axes
 """
 from math import log, exp
 import errorAnalysis as err
+from numpy import arange, meshgrid
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 """This python modual containts functions for the calculation of thermophysical properties of moist
 air in the range between 0 and 100 degC. For details regarding these functions see P.T. Tsilingiris
@@ -14,6 +20,23 @@ Author: Rich H. Inman
 email: rinman@ucsd.edu
 Date Created: 21 Nov. 2016
 """
+
+def build_xy_grid(x_det, y_det):
+    """Use x and y grid details to return meshgrid
+
+    This function builds a meshgrid to evaluate and plot functions of two variables.
+
+    Positional argument(s)
+    x_det -- [x_0, x_f, delta_x]
+    y_det -- [y_0, y_f, delta_y]
+
+    Output(s):
+    xgrid, ygrid -- lists of lists for (x,y) coordinates
+    """
+    xgrid = arange(x_det[0], x_det[1]+x_det[2], x_det[2])
+    ygrid = arange(y_det[0], y_det[1]+y_det[2], y_det[2])
+    return meshgrid(xgrid, ygrid)
+    #return xgrid, ygrid
 
 def get_temp_k_obs(temp_k, delta_t=0.2):
     """Use temp k to return list of tuples containing uncertainties.
@@ -27,7 +50,7 @@ def get_temp_k_obs(temp_k, delta_t=0.2):
     Keyword argument(s):
     delta_t -- uncertainty of all temperature observations (default 0.2)
 
-    Output(s)
+    Output(s):
     temp_k_obs -- list of tuples [(obs_1, delta_1), ..., (obs_n, delta_n)]
     """
     try:
@@ -149,6 +172,6 @@ def eff_p_sat_liq(temp_k, p_pa):
     p_sat = p_sat_liq(temp_k)
     enh_fact = enh_fact_liq(temp_k, p_pa, p_sat)
     return enh_fact*p_sat
-    
+
 def main():
     """Main"""
