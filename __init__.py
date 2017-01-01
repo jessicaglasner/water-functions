@@ -4,12 +4,14 @@ errorAnalysis for error analysis
 arange and meshgrid for 3d plot coordinates
 matplotlib.pyplot for plotting
 Axes3D for 3d axes
+cm for colormaps
 """
 from math import log, exp
 import errorAnalysis as err
 from numpy import arange, meshgrid
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
 
 """This python modual containts functions for the calculation of thermophysical properties of moist
 air in the range between 0 and 100 degC. For details regarding these functions see P.T. Tsilingiris
@@ -36,7 +38,46 @@ def build_xy_grid(x_det, y_det):
     xgrid = arange(x_det[0], x_det[1]+x_det[2], x_det[2])
     ygrid = arange(y_det[0], y_det[1]+y_det[2], y_det[2])
     return meshgrid(xgrid, ygrid)
-    #return xgrid, ygrid
+
+def plot_eff_p_sat_tdp_p(x_grid, y_grid):
+    """Use x_grid and y_grid to plot eff_p_sat(T, P).
+    
+    Preliminary function for plotting thermophysical properties of moist air. Much of this code will
+    end up being recycled and wrapped up into neater functions.
+
+    Positional arguments(s)
+    x_grid -- x-numpy.meshgrid
+    y_grid -- y-numpy.meshgrid
+
+    Output(s):
+    None
+    """
+    z_grid = x_grid*float('nan')
+    fig = plt.figure()
+    axis = fig.gca(projection='3d')
+    for i, _ in enumerate(x_grid):
+        for j, _ in enumerate(x_grid[0]):
+            z_grid[i][j] = eff_p_sat_liq(x_grid[i][j], y_grid[i][j])
+    axis.plot_surface(x_grid, y_grid, z_grid, rstride=4, cstride=4, alpha=0.3)
+    #ax.plot_surface(x_grid, y_grid, z_grid, alpha=0.3)
+    axis.contour(x_grid, y_grid, z_grid, zdir='z', offset=0, cmap=cm.coolwarm)
+    axis.contour(x_grid, y_grid, z_grid, zdir='x', offset=260, cmap=cm.coolwarm)
+    axis.contour(x_grid, y_grid, z_grid, zdir='y', offset=112500, cmap=cm.coolwarm)
+    axis.set_xlabel('\n'+r'$T$, [K]', linespacing=1.8)
+    axis.set_xticks([260, 270, 280, 290, 300, 310, 320, 330, 340, 350, 360])
+    axis.set_xticklabels(['', 270, '', 290, '', 310, '', 330, '', 350, ''])
+    axis.set_xlim(260, 366)
+    axis.set_ylabel('\n'+r'$P$, [hPa]', linespacing=2)
+    axis.set_yticks([25000, 37500, 50000, 62500, 75000, 87500, 100000])
+    axis.set_yticklabels([250, '', 500, '', 750, '', 1000])
+    axis.set_ylim(12500, 112500)
+    axis.set_zlabel('\n'+r'$P_{\rm{sat}}$, [hPa]', linespacing=1.5)
+    axis.set_zticks([0, 10000, 20000, 30000, 40000, 50000])
+    axis.set_zticklabels([0, 100, 200, 300, 400, 500])
+    axis.set_zlim(0, 50000)
+
+    plt.savefig('P_sat(T,P).pdf')
+    plt.show()
 
 def get_temp_k_obs(temp_k, delta_t=0.2):
     """Use temp k to return list of tuples containing uncertainties.
