@@ -39,8 +39,8 @@ def build_xy_grid(x_det, y_det):
     ygrid = arange(y_det[0], y_det[1]+y_det[2], y_det[2])
     return meshgrid(xgrid, ygrid)
 
-def plot_eff_p_sat_tdp_p(x_grid, y_grid):
-    """Use x_grid and y_grid to plot eff_p_sat(T, P).
+def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
+    """Use x_grid and y_grid to plot a property(T, P, RH).
     
     Preliminary function for plotting thermophysical properties of moist air. Much of this code will
     end up being recycled and wrapped up into neater functions.
@@ -55,28 +55,49 @@ def plot_eff_p_sat_tdp_p(x_grid, y_grid):
     z_grid = x_grid*float('nan')
     fig = plt.figure()
     axis = fig.gca(projection='3d')
+    verts = []
     for i, _ in enumerate(x_grid):
         for j, _ in enumerate(x_grid[0]):
-            z_grid[i][j] = eff_p_sat_liq(x_grid[i][j], y_grid[i][j])
+            if ver == 0: # p_sat
+                z_grid[i][j] = eff_p_sat_liq(x_grid[i][j], y_grid[i][j])
+            elif ver == 1: # f_en
+                z_grid[i][j] = enh_fact_liq(x_grid[i][j], y_grid[i][j], p_sat_liq(x_grid[i][j]))
+            elif ver == 2: # x_v
+                z_grid[i][j] = r_hum*eff_p_sat_liq(x_grid[i][j], y_grid[i][j])/y_grid[i][j]
+                if z_grid[i][j] > 1:
+                    z_grid[i][j] = 1
     axis.plot_surface(x_grid, y_grid, z_grid, rstride=4, cstride=4, alpha=0.3)
-    #ax.plot_surface(x_grid, y_grid, z_grid, alpha=0.3)
-    axis.contour(x_grid, y_grid, z_grid, zdir='z', offset=0, cmap=cm.coolwarm)
-    axis.contour(x_grid, y_grid, z_grid, zdir='x', offset=260, cmap=cm.coolwarm)
+    axis.contour(x_grid, y_grid, z_grid, zdir='x', offset=366, cmap=cm.coolwarm)
     axis.contour(x_grid, y_grid, z_grid, zdir='y', offset=112500, cmap=cm.coolwarm)
     axis.set_xlabel('\n'+r'$T$, [K]', linespacing=1.8)
     axis.set_xticks([260, 270, 280, 290, 300, 310, 320, 330, 340, 350, 360])
     axis.set_xticklabels(['', 270, '', 290, '', 310, '', 330, '', 350, ''])
-    axis.set_xlim(260, 366)
+    axis.set_xlim(366,260)
     axis.set_ylabel('\n'+r'$P$, [hPa]', linespacing=2)
     axis.set_yticks([25000, 37500, 50000, 62500, 75000, 87500, 100000])
     axis.set_yticklabels([250, '', 500, '', 750, '', 1000])
     axis.set_ylim(12500, 112500)
-    axis.set_zlabel('\n'+r'$P_{\rm{sat}}$, [hPa]', linespacing=1.5)
-    axis.set_zticks([0, 10000, 20000, 30000, 40000, 50000])
-    axis.set_zticklabels([0, 100, 200, 300, 400, 500])
-    axis.set_zlim(0, 50000)
+    if ver == 0: # p_sat
+        axis.contour(x_grid, y_grid, z_grid, zdir='z', offset=0, cmap=cm.coolwarm)
+        axis.set_zlabel('\n'+r'$P_{\rm{sat}}$, [hPa]', linespacing=1.5)
+        axis.set_zticks([0, 10000, 20000, 30000, 40000, 50000])
+        axis.set_zticklabels([0, 100, 200, 300, 400, 500])
+        axis.set_zlim(0, 50000)
+        plt.savefig('000_P_sat(T,P).pdf')
+    elif ver == 1: # f_en
+        axis.contour(x_grid, y_grid, z_grid, zdir='z', offset=0.992, cmap=cm.coolwarm)
+        axis.set_zlabel('\n'+r'f$_{\rm{en}}$', linespacing=2.5, style='italic')
+        axis.tick_params(axis='z', which='major', pad=8)
+        axis.set_zlim(0.992, 1.006)
+        plt.savefig('001_f_en(T,P).pdf')
+    elif ver == 2: # x_v
+        axis.contour(x_grid, y_grid, z_grid, zdir='z', offset=0, cmap=cm.coolwarm)
+        axis.set_zlabel('\n'+r'x$_v$', linespacing=1.5, style='italic')
+        axis.set_zticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
+        axis.set_zlim(0, 1)
+        axis.text(250, 0, 1.25, 'RH = '+str(int(r_hum*100))+'%')
+        plt.savefig('002_x_v(T,P)'+str(int(r_hum*100))+'.pdf')
 
-    plt.savefig('P_sat(T,P).pdf')
     plt.show()
 
 def get_temp_k_obs(temp_k, delta_t=0.2):
