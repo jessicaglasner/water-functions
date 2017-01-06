@@ -80,6 +80,8 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
         lev = arange(1.001, 1.00501, 5e-5)
     elif ver == 2: #x_v
         lev = arange(0, 0.081, 8.1e-4)
+    elif ver == 3: #comp_fact
+        lev = arange(0.997, 1, 3e-5)
     norml = colors.BoundaryNorm(lev, 256)
 
     # Initalize z-grid
@@ -98,6 +100,8 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
                 z_grid[i][j] = enh_fact_liq(x_grid[i][j], y_grid[i][j], p_sat_liq(x_grid[i][j]))
             elif ver == 2: # x_v
                 z_grid[i][j] = r_hum*eff_p_sat_liq(x_grid[i][j], y_grid[i][j])/y_grid[i][j]
+            elif ver == 3: # comp_fact
+                z_grid[i][j] = comp_fact(x_grid[i][j], y_grid[i][j])
 
     # Plot
     surf = axis.plot_surface(x_grid, y_grid, z_grid, rstride=2, cstride=2, cmap=cm.coolwarm,
@@ -145,6 +149,15 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
         axis.set_zlim(-0.01, 0.085)
         axis.text(285, 100000, 0.06, 'RH = '+str(int(r_hum*100))+'%')
         plt.savefig('002_x_v(T,P)'+str(int(r_hum*100))+'.pdf')
+    elif ver == 3: # comp_fact
+        z_ticks = [0.997, 0.9975, 0.998, 0.9985, 0.999, 0.9995, 1]
+        fig.colorbar(surf, shrink=0.5, aspect=10, pad=0.07, format='%.3f', ticks=z_ticks)
+        axis.contour(x_grid, y_grid, z_grid, zdir='z', offset=0.997, cmap=cm.coolwarm)
+        axis.set_zlabel('\n'+r'Z$_c$', style='italic')
+        axis.set_zticks(z_ticks)
+        axis.set_zticklabels([0.997, '', 0.998, '', 0.999, '', 1])
+        axis.set_zlim(0.997, 1)
+        plt.savefig('003_comp_fact(T,P).pdf')
 
     plt.show()
 
