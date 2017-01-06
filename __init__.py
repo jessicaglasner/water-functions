@@ -69,6 +69,11 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
     x_grid -- x-numpy.meshgrid
     y_grid -- y-numpy.meshgrid
 
+    Keyword arguments(s):
+    r_hum  -- relative humidity as a fraction
+    ver    -- version of the plot to produce
+              {0: p_sat, 1: f_en, 2: x_v, 3: comp_fact, 4: rho_mix}
+
     Output(s):
     None
     """
@@ -82,6 +87,8 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
         lev = arange(0, 0.081, 8.1e-4)
     elif ver == 3: #comp_fact
         lev = arange(0.997, 1, 3e-5)
+    elif ver == 4: # rho_m
+        lev = arange(0.3, 1.3, 0.001)
     norml = colors.BoundaryNorm(lev, 256)
 
     # Initalize z-grid
@@ -102,6 +109,8 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
                 z_grid[i][j] = r_hum*eff_p_sat_liq(x_grid[i][j], y_grid[i][j])/y_grid[i][j]
             elif ver == 3: # comp_fact
                 z_grid[i][j] = comp_fact(x_grid[i][j], y_grid[i][j])
+            elif ver == 4: # rho_m
+                z_grid[i][j] = rho_mix(x_grid[i][j], y_grid[i][j], r_hum)
 
     # Plot
     surf = axis.plot_surface(x_grid, y_grid, z_grid, rstride=2, cstride=2, cmap=cm.coolwarm,
@@ -158,6 +167,16 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
         axis.set_zticklabels([0.997, '', 0.998, '', 0.999, '', 1])
         axis.set_zlim(0.997, 1)
         plt.savefig('003_comp_fact(T,P).pdf')
+    elif ver == 4: # rho_m
+        z_ticks = [0.2, 0.4, 0.6, 0.8, 1.0, 1.2]
+        fig.colorbar(surf, shrink=0.5, aspect=10, pad=0.07, format='%.1f', ticks=z_ticks)
+        axis.contour(x_grid, y_grid, z_grid, zdir='z', offset=0.17, cmap=cm.coolwarm)
+        axis.set_zlabel('\n'+r'$\rho_m$', style='italic')
+        axis.set_zticks(z_ticks)
+        axis.set_zlim(0.17, 1.46)
+        axis.text(322, 19500, 1.35, 'RH = '+str(int(r_hum*100))+'%')
+        plt.savefig('004_rho_m(T,P,RH)'+str(int(r_hum*100))+'.pdf')
+
 
     plt.show()
 
@@ -300,14 +319,15 @@ def comp_fact(temp_k, p_pa):
     """Use temp_k and p_pa to calculate the compressibility facor
 
     This function uses the virial equation (14) from Tsilingiris (2008), "Thermophysical and
-    transport properties of humid air at temperature range between 0 and 100 C," to calculate the compressibility vactor of moist air.
+    transport properties of humid air at temperature range between 0 and 100 C," to calculate the
+    compressibility vactor of moist air.
 
     Positional argument(s):
     temp_k -- temperature in Kelvin
     p_pa   -- total pressure in Pa
     
     Output(s):
-    cmp_fact -- compressibility factor of moist air
+    z_c    -- compressibility factor of moist air
     """
     c_coeff = [0.7e-8, -0.147184e-8, 1734.29]
     k_coeff = [0.104e-14, -0.335297e-17, 3645.09]
@@ -318,6 +338,26 @@ def comp_fact(temp_k, p_pa):
     p_sat = eff_p_sat_liq(temp_k, p_pa)
 
     return 1 + a_coeff*p_sat + b_coeff*pow(p_sat, 2)
+
+def rho_mix(temp_k, p_pa, r_hum=0.5):
+    """Use temp_k, p_pa, and r_hum to calculate the density of moist air
+
+    This function uses the equation of state (1) from  Picard et al. (2008), "Revised formula for
+    the density of moist air (CIPM-2007)," to calculate the density of moist air in kg/m^3.
+
+    Positional argument(s):
+    temp_k -- temperature in Kelvin
+    p_pa   -- total pressure in Pa
+
+    Keyword argument(s):
+    r_hum  -- relative humidity as a fraction
+
+    Output(s):
+    rho_m  -- density of the misture in kg/m^3
+    """
+    z_c = comp_fact(temp_k, p_pa)
+    x_v = r_hum*eff_p_sat_liq(temp_k, p_pa)/p_pa
+    return (p_pa*28.96546)/(z_c*8314.4598*temp_k)*(1-x_v*(0.3780427))
 
 def main():
     """Main"""
