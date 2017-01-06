@@ -8,7 +8,7 @@ cm for colormaps
 """
 from math import log, exp
 import errorAnalysis as err
-from numpy import arange, meshgrid, pi, linspace, cos, sin
+from numpy import arange, meshgrid
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm, colors
@@ -282,6 +282,29 @@ def eff_p_sat_liq(temp_k, p_pa):
     p_sat = p_sat_liq(temp_k)
     enh_fact = enh_fact_liq(temp_k, p_pa, p_sat)
     return enh_fact*p_sat
+
+def comp_fact(temp_k, p_pa):
+    """Use temp_k and p_pa to calculate the compressibility facor
+
+    This function uses the virial equation (14) from Tsilingiris (2008), "Thermophysical and
+    transport properties of humid air at temperature range between 0 and 100 C," to calculate the compressibility vactor of moist air.
+
+    Positional argument(s):
+    temp_k -- temperature in Kelvin
+    p_pa   -- total pressure in Pa
+    
+    Output(s):
+    cmp_fact -- compressibility factor of moist air
+    """
+    c_coeff = [0.7e-8, -0.147184e-8, 1734.29]
+    k_coeff = [0.104e-14, -0.335297e-17, 3645.09]
+
+    a_coeff = c_coeff[0] + c_coeff[1]*exp(c_coeff[2]/temp_k)
+    b_coeff = k_coeff[0] + k_coeff[1]*exp(k_coeff[2]/temp_k)
+
+    p_sat = eff_p_sat_liq(temp_k, p_pa)
+
+    return 1 + a_coeff*p_sat + b_coeff*pow(p_sat, 2)
 
 def main():
     """Main"""
