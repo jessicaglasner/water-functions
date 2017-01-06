@@ -8,10 +8,10 @@ cm for colormaps
 """
 from math import log, exp
 import errorAnalysis as err
-from numpy import arange, meshgrid
+from numpy import arange, meshgrid, pi, linspace, cos, sin
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
+from matplotlib import cm, colors
 
 """This python modual containts functions for the calculation of thermophysical properties of moist
 air in the range between 0 and 100 degC. For details regarding these functions see P.T. Tsilingiris
@@ -39,9 +39,29 @@ def build_xy_grid(x_det, y_det):
     ygrid = arange(y_det[0], y_det[1]+y_det[2], y_det[2])
     return meshgrid(xgrid, ygrid)
 
+def shave_xy_grid(x_grid, y_grid):
+    """Use x_grid and y_grid to shave meshgrid
+
+    This function sets coordinate paris in x_grid and y_grid to NaN if they satisfy the condition:
+    P < 101325*pow(T/313.15, 10).
+
+    Positional argument(s)
+    x_grid -- meshgrid from build_xy_grid function
+    y_grid -- meshgrid from build_xy_grid function
+
+    Output(s):
+    xgrid, ygrid -- lists of lists for (x,y) coordinates
+    """
+    for i, _ in enumerate(x_grid):
+        for j, _ in enumerate(x_grid[0]):
+            if y_grid[i][j] < 101325.*pow(x_grid[i][j]/313.15, 10):
+                x_grid[i][j] = float('nan')
+                y_grid[i][j] = float('nan')
+    return x_grid, y_grid
+
 def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
     """Use x_grid and y_grid to plot a property(T, P, RH).
-    
+
     Preliminary function for plotting thermophysical properties of moist air. Much of this code will
     end up being recycled and wrapped up into neater functions.
 
@@ -52,10 +72,24 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
     Output(s):
     None
     """
+
+    # Normalize colorbar
+    if ver == 0: # p_sat
+        lev = arange(0, 8100, 81)
+    elif ver == 1: # f_en
+        lev = arange(1.001, 1.00501, 5e-5)
+    elif ver == 2: #x_v
+        lev = arange(0, 0.081, 8.1e-4)
+    norml = colors.BoundaryNorm(lev, 256)
+
+    # Initalize z-grid
     z_grid = x_grid*float('nan')
-    fig = plt.figure()
+
+    # Create 3d figure
+    fig = plt.figure(figsize=[9, 6])
     axis = fig.gca(projection='3d')
-    verts = []
+
+    # Build plot
     for i, _ in enumerate(x_grid):
         for j, _ in enumerate(x_grid[0]):
             if ver == 0: # p_sat
@@ -64,38 +98,52 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
                 z_grid[i][j] = enh_fact_liq(x_grid[i][j], y_grid[i][j], p_sat_liq(x_grid[i][j]))
             elif ver == 2: # x_v
                 z_grid[i][j] = r_hum*eff_p_sat_liq(x_grid[i][j], y_grid[i][j])/y_grid[i][j]
-                if z_grid[i][j] > 1:
-                    z_grid[i][j] = 1
-    axis.plot_surface(x_grid, y_grid, z_grid, rstride=4, cstride=4, alpha=0.3)
-    axis.contour(x_grid, y_grid, z_grid, zdir='x', offset=366, cmap=cm.coolwarm)
-    axis.contour(x_grid, y_grid, z_grid, zdir='y', offset=112500, cmap=cm.coolwarm)
+
+    # Plot
+    surf = axis.plot_surface(x_grid, y_grid, z_grid, rstride=2, cstride=2, cmap=cm.coolwarm,
+                             linewidth=0, norm=norml, rasterized=True)
+    axis.contour(x_grid, y_grid, z_grid, zdir='x', offset=320, cmap=cm.coolwarm)
+    axis.contour(x_grid, y_grid, z_grid, zdir='y', offset=114025, cmap=cm.coolwarm)
+
+    # x-axis
     axis.set_xlabel('\n'+r'$T$, [K]', linespacing=1.8)
-    axis.set_xticks([260, 270, 280, 290, 300, 310, 320, 330, 340, 350, 360])
-    axis.set_xticklabels(['', 270, '', 290, '', 310, '', 330, '', 350, ''])
-    axis.set_xlim(366,260)
+    axis.set_xticks([270, 280, 290, 300, 310])
+    axis.set_xlim(320, 266)
+
+    # y-axis
     axis.set_ylabel('\n'+r'$P$, [hPa]', linespacing=2)
-    axis.set_yticks([25000, 37500, 50000, 62500, 75000, 87500, 100000])
-    axis.set_yticklabels([250, '', 500, '', 750, '', 1000])
-    axis.set_ylim(12500, 112500)
+    axis.set_yticks([20e3, 40e3, 60e3, 80e3, 100e3])
+    axis.set_yticklabels([200, 400, 600, 800, '1,000'])
+    axis.set_ylim(13200, 114025)
+
+    # z-axis
     if ver == 0: # p_sat
-        axis.contour(x_grid, y_grid, z_grid, zdir='z', offset=0, cmap=cm.coolwarm)
+        z_ticks = [0, 2000, 4000, 6000, 8000]
+        fig.colorbar(surf, shrink=0.5, aspect=10, pad=0.07, format='%.0f', ticks=z_ticks)
+        axis.contour(x_grid, y_grid, z_grid, zdir='z', offset=-523, cmap=cm.coolwarm)
         axis.set_zlabel('\n'+r'$P_{\rm{sat}}$, [hPa]', linespacing=1.5)
-        axis.set_zticks([0, 10000, 20000, 30000, 40000, 50000])
-        axis.set_zticklabels([0, 100, 200, 300, 400, 500])
-        axis.set_zlim(0, 50000)
+        axis.set_zticks(z_ticks)
+        axis.set_zticklabels([0, 20, 40, 60, 80])
+        axis.set_zlim(-523, 8555)
         plt.savefig('000_P_sat(T,P).pdf')
     elif ver == 1: # f_en
-        axis.contour(x_grid, y_grid, z_grid, zdir='z', offset=0.992, cmap=cm.coolwarm)
-        axis.set_zlabel('\n'+r'f$_{\rm{en}}$', linespacing=2.5, style='italic')
+        z_ticks = [1.001, 1.002, 1.003, 1.004, 1.005]
+        fig.colorbar(surf, shrink=0.5, aspect=10, pad=0.07, format='%.3f', ticks=z_ticks)
+        axis.contour(x_grid, y_grid, z_grid, zdir='z', offset=1.0006, cmap=cm.coolwarm)
+        axis.set_zlabel('\n'+r'f$_{\rm{en}}$', linespacing=3.2, style='italic')
         axis.tick_params(axis='z', which='major', pad=8)
-        axis.set_zlim(0.992, 1.006)
+        axis.set_zticks(z_ticks)
+        axis.set_zticklabels(z_ticks)
+        axis.set_zlim(1.0006, 1.0053)
         plt.savefig('001_f_en(T,P).pdf')
     elif ver == 2: # x_v
-        axis.contour(x_grid, y_grid, z_grid, zdir='z', offset=0, cmap=cm.coolwarm)
-        axis.set_zlabel('\n'+r'x$_v$', linespacing=1.5, style='italic')
-        axis.set_zticks([0, 0.2, 0.4, 0.6, 0.8, 1.0])
-        axis.set_zlim(0, 1)
-        axis.text(250, 0, 1.25, 'RH = '+str(int(r_hum*100))+'%')
+        z_ticks = [0, 0.02, 0.04, 0.06, 0.08]
+        fig.colorbar(surf, shrink=0.5, aspect=10, pad=0.07, format='%.2f', ticks=z_ticks)
+        axis.contour(x_grid, y_grid, z_grid, zdir='z', offset=-0.01, cmap=cm.coolwarm)
+        axis.set_zlabel('\n'+r'x$_v$', style='italic')
+        axis.set_zticks(z_ticks)
+        axis.set_zlim(-0.01, 0.085)
+        axis.text(285, 100000, 0.06, 'RH = '+str(int(r_hum*100))+'%')
         plt.savefig('002_x_v(T,P)'+str(int(r_hum*100))+'.pdf')
 
     plt.show()
