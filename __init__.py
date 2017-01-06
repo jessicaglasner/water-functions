@@ -89,6 +89,8 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
         lev = arange(0.997, 1, 3e-5)
     elif ver == 4: # rho_m
         lev = arange(0.3, 1.3, 0.001)
+    elif ver == 5: # m_v
+        lev = arange(0, 0.051, 5e-4)
     norml = colors.BoundaryNorm(lev, 256)
 
     # Initalize z-grid
@@ -111,6 +113,8 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
                 z_grid[i][j] = comp_fact(x_grid[i][j], y_grid[i][j])
             elif ver == 4: # rho_m
                 z_grid[i][j] = rho_mix(x_grid[i][j], y_grid[i][j], r_hum)
+            elif ver == 5: #m_v
+                z_grid[i][j] = m_v(x_grid[i][j], y_grid[i][j], r_hum)
 
     # Plot
     surf = axis.plot_surface(x_grid, y_grid, z_grid, rstride=2, cstride=2, cmap=cm.coolwarm,
@@ -176,9 +180,18 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
         axis.set_zlim(0.17, 1.46)
         axis.text(322, 19500, 1.35, 'RH = '+str(int(r_hum*100))+'%')
         plt.savefig('004_rho_m(T,P,RH)'+str(int(r_hum*100))+'.pdf')
+    elif ver == 5: # rho_m
+        z_ticks = [0, 0.01, 0.02, 0.03, 0.04, 0.05]
+        fig.colorbar(surf, shrink=0.5, aspect=10, pad=0.07, format='%.2f', ticks=z_ticks)
+        axis.contour(x_grid, y_grid, z_grid, zdir='z', offset=-0.008, cmap=cm.coolwarm)
+        axis.set_zlabel('\n'+r'm$_v$', style='italic')
+        axis.set_zticks(z_ticks)
+        axis.set_zlim(-0.008, 0.055)
+        axis.text(285, 100000, 0.04, 'RH = '+str(int(r_hum*100))+'%')
+        plt.savefig('005_m_v(T,P,RH)'+str(int(r_hum*100))+'.pdf')
 
 
-    plt.show()
+    #plt.show()
 
 def get_temp_k_obs(temp_k, delta_t=0.2):
     """Use temp k to return list of tuples containing uncertainties.
@@ -375,6 +388,23 @@ def x_v(temp_k, p_pa, r_hum=0.5):
     """
     return r_hum*eff_p_sat_liq(temp_k, p_pa)/p_pa
 
+def m_v(temp_k, p_pa, r_hum=0.5):
+    """
+    Use temp_k, p_pa, and r_hum to calculate mass fraction
+
+    Positional argument(s):
+    temp_k -- temperature in Kelvin
+    p_pa   -- total pressure in Pa
+
+    Keyword argument(s):
+    r_hum  -- relative humidity as a fraction
+
+    Output(s):
+    mass_frac -- mass fraction of the vapor
+    """
+    mole_frac = x_v(temp_k, p_pa, r_hum)
+    
+    return  mole_frac*18.01528/(mole_frac*18.01528 + (1-mole_frac)*28.96546)
 
 def main():
     """Main"""
