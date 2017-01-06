@@ -106,7 +106,7 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
             elif ver == 1: # f_en
                 z_grid[i][j] = enh_fact_liq(x_grid[i][j], y_grid[i][j], p_sat_liq(x_grid[i][j]))
             elif ver == 2: # x_v
-                z_grid[i][j] = r_hum*eff_p_sat_liq(x_grid[i][j], y_grid[i][j])/y_grid[i][j]
+                z_grid[i][j] = x_v(x_grid[i][j], y_grid[i][j], r_hum)
             elif ver == 3: # comp_fact
                 z_grid[i][j] = comp_fact(x_grid[i][j], y_grid[i][j])
             elif ver == 4: # rho_m
@@ -353,11 +353,28 @@ def rho_mix(temp_k, p_pa, r_hum=0.5):
     r_hum  -- relative humidity as a fraction
 
     Output(s):
-    rho_m  -- density of the misture in kg/m^3
+    rho_m  -- density of the mixture in kg/m^3
     """
     z_c = comp_fact(temp_k, p_pa)
     x_v = r_hum*eff_p_sat_liq(temp_k, p_pa)/p_pa
     return (p_pa*28.96546)/(z_c*8314.4598*temp_k)*(1-x_v*(0.3780427))
+
+def x_v(temp_k, p_pa, r_hum=0.5):
+    """
+    Use temp_k, p_pa, and r_hum to calculate mole fraction
+
+    Positional argument(s):
+    temp_k -- temperature in Kelvin
+    p_pa   -- total pressure in Pa
+
+    Keyword argument(s):
+    r_hum  -- relative humidity as a fraction
+
+    Output(s):
+    mole_frac -- mole fraction of the vapor
+    """
+    return r_hum*eff_p_sat_liq(temp_k, p_pa)/p_pa
+
 
 def main():
     """Main"""
