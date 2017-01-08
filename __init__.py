@@ -72,7 +72,7 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
     Keyword arguments(s):
     r_hum  -- relative humidity as a fraction
     ver    -- version of the plot to produce
-              {0: p_sat, 1: f_en, 2: x_v, 3: comp_fact, 4: rho_mix}
+              {0: p_sat, 1: f_e, 2: x_v, 3: comp_fact, 4: rho_mix}
 
     Output(s):
     None
@@ -81,7 +81,7 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
     # Normalize colorbar
     if ver == 0: # p_sat
         lev = arange(0, 8100, 81)
-    elif ver == 1: # f_en
+    elif ver == 1: # f_e
         lev = arange(1.001, 1.00501, 5e-5)
     elif ver == 2: #x_v
         lev = arange(0, 0.081, 8.1e-4)
@@ -107,7 +107,7 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
         for j, _ in enumerate(x_grid[0]):
             if ver == 0: # p_sat
                 z_grid[i][j] = eff_p_sat_liq(x_grid[i][j], y_grid[i][j])
-            elif ver == 1: # f_en
+            elif ver == 1: # f_e
                 z_grid[i][j] = enh_fact_liq(x_grid[i][j], y_grid[i][j], p_sat_liq(x_grid[i][j]))
             elif ver == 2: # x_v
                 z_grid[i][j] = x_v(x_grid[i][j], y_grid[i][j], r_hum)
@@ -147,21 +147,21 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
         axis.set_zticklabels([0, 20, 40, 60, 80])
         axis.set_zlim(-523, 8555)
         plt.savefig('000_P_sat(T,P).pdf')
-    elif ver == 1: # f_en
+    elif ver == 1: # f_e
         z_ticks = [1.001, 1.002, 1.003, 1.004, 1.005]
         fig.colorbar(surf, shrink=0.5, aspect=10, pad=0.07, format='%.3f', ticks=z_ticks)
         axis.contour(x_grid, y_grid, z_grid, zdir='z', offset=1.0006, cmap=cm.coolwarm)
-        axis.set_zlabel('\n'+r'f$_{\rm{en}}$', linespacing=3.2, style='italic')
+        axis.set_zlabel('\n'+r'f$_{\rm{e}}$', linespacing=3.2, style='italic')
         axis.tick_params(axis='z', which='major', pad=8)
         axis.set_zticks(z_ticks)
         axis.set_zticklabels(z_ticks)
         axis.set_zlim(1.0006, 1.0053)
-        plt.savefig('001_f_en(T,P).pdf')
+        plt.savefig('001_f_e(T,P).pdf')
     elif ver == 2: # x_v
         z_ticks = [0, 0.02, 0.04, 0.06, 0.08]
         fig.colorbar(surf, shrink=0.5, aspect=10, pad=0.07, format='%.2f', ticks=z_ticks)
         axis.contour(x_grid, y_grid, z_grid, zdir='z', offset=-0.01, cmap=cm.coolwarm)
-        axis.set_zlabel('\n'+r'x$_v$', style='italic')
+        axis.set_zlabel('\n'+r'x$_{\rm{v}}$', style='italic')
         axis.set_zticks(z_ticks)
         axis.set_zlim(-0.01, 0.085)
         axis.text(285, 100000, 0.06, 'RH = '+str(int(r_hum*100))+'%')
@@ -170,7 +170,7 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
         z_ticks = [0.997, 0.9975, 0.998, 0.9985, 0.999, 0.9995, 1]
         fig.colorbar(surf, shrink=0.5, aspect=10, pad=0.07, format='%.3f', ticks=z_ticks)
         axis.contour(x_grid, y_grid, z_grid, zdir='z', offset=0.997, cmap=cm.coolwarm)
-        axis.set_zlabel('\n'+r'Z$_c$', style='italic')
+        axis.set_zlabel('\n'+r'Z$_{\rm{c}}$', style='italic')
         axis.set_zticks(z_ticks)
         axis.set_zticklabels([0.997, '', 0.998, '', 0.999, '', 1])
         axis.set_zlim(0.997, 1)
@@ -179,7 +179,7 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
         z_ticks = [0.2, 0.4, 0.6, 0.8, 1.0, 1.2]
         fig.colorbar(surf, shrink=0.5, aspect=10, pad=0.07, format='%.1f', ticks=z_ticks)
         axis.contour(x_grid, y_grid, z_grid, zdir='z', offset=0.17, cmap=cm.coolwarm)
-        axis.set_zlabel('\n'+r'$\rho_m$', style='italic')
+        axis.set_zlabel('\n'+r'$\rho_{\rm{m}}$, [kg m$^{-3}$]')
         axis.set_zticks(z_ticks)
         axis.set_zlim(0.17, 1.46)
         axis.text(322, 19500, 1.35, 'RH = '+str(int(r_hum*100))+'%')
@@ -188,7 +188,7 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
         z_ticks = [0, 0.01, 0.02, 0.03, 0.04, 0.05]
         fig.colorbar(surf, shrink=0.5, aspect=10, pad=0.07, format='%.2f', ticks=z_ticks)
         axis.contour(x_grid, y_grid, z_grid, zdir='z', offset=-0.008, cmap=cm.coolwarm)
-        axis.set_zlabel('\n'+r'm$_v$', style='italic')
+        axis.set_zlabel('\n'+r'm$_{\rm{v}}$', style='italic')
         axis.set_zticks(z_ticks)
         axis.set_zlim(-0.008, 0.055)
         axis.text(285, 100000, 0.04, 'RH = '+str(int(r_hum*100))+'%')
@@ -197,14 +197,14 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
         z_ticks = [0, 0.01, 0.02, 0.03, 0.04, 0.05]
         fig.colorbar(surf, shrink=0.5, aspect=10, pad=0.07, format='%.2f', ticks=z_ticks)
         axis.contour(x_grid, y_grid, z_grid, zdir='z', offset=-0.008, cmap=cm.coolwarm)
-        axis.set_zlabel('\n'+r'$\rho_v$, [kg m$^{-3}$]')
+        axis.set_zlabel('\n'+r'$\rho_{\rm{v}}$, [kg m$^{-3}$]')
         axis.set_zticks(z_ticks)
         axis.set_zlim(-0.008, 0.055)
         axis.text(285, 100000, 0.04, 'RH = '+str(int(r_hum*100))+'%')
         plt.savefig('006_rho_v(T,P,RH)'+str(int(r_hum*100))+'.pdf')
 
 
-    plt.show()
+    #plt.show()
 
 def get_temp_k_obs(temp_k, delta_t=0.2):
     """Use temp k to return list of tuples containing uncertainties.
@@ -298,7 +298,7 @@ def p_sat_liq(temp_k):
     return p_sat
 
 def enh_fact_liq(temp_k, p_pa, p_sat):
-    """Use Hardy (1998) to return f_enh.
+    """Use Hardy (1998) to return f_e.
 
     This function uses Hardy (1998), "ITS-90 Formulations for Vapor Pressure, Frostpoint
     Temperature, Dewpoint Temperature, and Enhancement Factors in the Range -100 to +100 C," to
@@ -310,7 +310,7 @@ def enh_fact_liq(temp_k, p_pa, p_sat):
     p_sat  -- saturation vapor pressure of water over liquid water in Pa
     
     Output(s):
-    f_enh -- enhancement factor over liquid water
+    f_e -- enhancement factor over liquid water
     """
     a_coef = (-1.6302041e-1, 1.8071570e-3, -6.7703064e-6, 8.5813609e-9)
     alpha = 0
@@ -320,8 +320,8 @@ def enh_fact_liq(temp_k, p_pa, p_sat):
         alpha += a_coef[i] * pow(temp_k, i)
         beta += b_coef[i] * pow(temp_k, i)
     beta = exp(beta)
-    f_enh = exp(alpha*(1 - p_sat/p_pa) + beta*(p_pa/p_sat - 1))
-    return f_enh
+    f_e = exp(alpha*(1 - p_sat/p_pa) + beta*(p_pa/p_sat - 1))
+    return f_e
 
 def eff_p_sat_liq(temp_k, p_pa):
     """Use p_sat_liq and enh_fact_liq to return effective saturation pressure.
