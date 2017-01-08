@@ -93,6 +93,10 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
         lev = arange(0, 0.051, 5e-4)
     elif ver == 6: # rho_v
         lev = arange(0, 0.051, 5e-4)
+    elif ver == 7: # kg_v
+        lev = arange(0, 0.009, 9e-5)
+    elif ver == 8: # rho_ideal
+        lev = arange(0.3, 1.3, 0.001)
     norml = colors.BoundaryNorm(lev, 256)
 
     # Initalize z-grid
@@ -119,6 +123,10 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
                 z_grid[i][j] = m_v(x_grid[i][j], y_grid[i][j], r_hum)
             elif ver == 6: # rho_v
                 z_grid[i][j] = rho_v(x_grid[i][j], y_grid[i][j], r_hum)
+            elif ver == 7: # kg_v
+                z_grid[i][j] = rho_v(x_grid[i][j], y_grid[i][j], r_hum)*0.1779
+            elif ver == 8: # rho_ideal
+                z_grid[i][j] = y_grid[i][j]/(287.0474*x_grid[i][j])
 
     # Plot
     surf = axis.plot_surface(x_grid, y_grid, z_grid, rstride=2, cstride=2, cmap=cm.coolwarm,
@@ -202,9 +210,27 @@ def plot_property(x_grid, y_grid, r_hum=0.5, ver=0):
         axis.set_zlim(-0.008, 0.055)
         axis.text(285, 100000, 0.04, 'RH = '+str(int(r_hum*100))+'%')
         plt.savefig('006_rho_v(T,P,RH)'+str(int(r_hum*100))+'.pdf')
+    elif ver == 7: # kg_v
+        z_ticks = [0, 0.002, 0.004, 0.006, 0.008]
+        fig.colorbar(surf, shrink=0.5, aspect=10, pad=0.07, format='%.3f', ticks=z_ticks)
+        axis.contour(x_grid, y_grid, z_grid, zdir='z', offset=-0.0006, cmap=cm.coolwarm)
+        axis.set_zlabel('\n'+r'kg$_{\rm{v}}$')
+        axis.set_zticks(z_ticks)
+        axis.set_zlim(-0.0006, 0.0096)
+        axis.text(285, 100000, 0.0071, 'RH = '+str(int(r_hum*100))+'%')
+        plt.savefig('007_kg_v(T,P,RH)'+str(int(r_hum*100))+'.pdf')
+    elif ver == 8: # rho_ideal
+        z_ticks = [0.2, 0.4, 0.6, 0.8, 1.0, 1.2]
+        fig.colorbar(surf, shrink=0.5, aspect=10, pad=0.07, format='%.1f', ticks=z_ticks)
+        axis.contour(x_grid, y_grid, z_grid, zdir='z', offset=0.17, cmap=cm.coolwarm)
+        axis.set_zlabel('\n'+r'$\rho_{\rm{ideal}}$, [kg m$^{-3}$]')
+        axis.set_zticks(z_ticks)
+        axis.set_zlim(0.17, 1.46)
+        axis.text(322, 19500, 1.35, 'RH = '+str(int(r_hum*100))+'%')
+        plt.savefig('008_rho_ideal(T,P,RH)'+str(int(r_hum*100))+'.pdf')
 
 
-    #plt.show()
+    plt.show()
 
 def get_temp_k_obs(temp_k, delta_t=0.2):
     """Use temp k to return list of tuples containing uncertainties.
